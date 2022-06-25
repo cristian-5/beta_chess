@@ -789,7 +789,7 @@ export class Chess {
 			const headers = header.split(new RegExp(mask(endings)));
 			let key = '', value = '';
 			for (let i = 0; i < headers.length; i++) {
-				const regex = /^\s*\[([A-Za-z]+)\s*"(.*)"\s*\]\s*$/;
+				const regex = /^\s*\[\s*(\w+)\s*"(.*)"\s*\]\s*$/;
 				key = headers[i].replace(regex, '$1');
 				value = headers[i].replace(regex, '$2');
 				if (key.trim().length > 0) header_obj[key] = value;
