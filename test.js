@@ -53,6 +53,18 @@ delete Chess.perft;
 
 // ==== tests ==================================================================
 
+test('ENDCL', () => {
+	// endgame classification
+	const endgames = [
+		{ fen: '8/8/1pp5/8/P1P5/5k2/8/5K2 w - - 0 2', ec: 'KPPkpp' },
+	];
+	for (const { fen, ec } of endgames) {
+		const chess = new Chess(fen);
+		console.log(chess.endgame);
+		test('`' + fen + '`', () => assert(chess.endgame === ec));
+	}
+});
+
 test('SSMGN', () => {
 	// single square move generation
 	const positions = [

@@ -1587,4 +1587,37 @@ export class Chess {
 		) % 2 === 0 ? LIGHT : DARK;
 	}
 
+	/** _Returns_ the endgame classification code for the current endgame. */
+	get endgame() {
+		let e = '';
+		const pieces = {
+			"K": 0, "Q": 0, "R": 0, "B": 0, "N": 0, "P": 0,
+			"k": 0, "q": 0, "r": 0, "b": 0, "n": 0, "p": 0
+		};
+		const lsb = { w: false, b: false }, dsb = { w: false, b: false };
+		for (const square in SQUARES) {
+			const piece = this.get(square);
+			if (!piece) continue;
+			pieces[piece.color === WHITE ? piece.type.toUpperCase() : piece.type]++;
+			if (piece.type === BISHOP) {
+				const color = this.color(square);
+				if (color === LIGHT) lsb[piece.color] = true;
+				else dsb[piece.color] = true;
+			}
+		}
+		const PIECES = "KQRBNPkqrnbp";
+		for (const p of PIECES) while (pieces[p]--) e += p;
+		if (lsb.w && dsb.b || lsb.b && dsb.w) e += ' x-y';
+		else if (lsb.w && lsq.b) e += ' x-x';
+		else if (dsb.w && dsb.b) e += ' y-y';
+		// castling
+		let cflags = '';
+		if (this.#castling[WHITE] & BITS.KSIDE_CASTLE) cflags += 'K';
+		if (this.#castling[WHITE] & BITS.QSIDE_CASTLE) cflags += 'Q';
+		if (this.#castling[BLACK] & BITS.KSIDE_CASTLE) cflags += 'k';
+		if (this.#castling[BLACK] & BITS.QSIDE_CASTLE) cflags += 'q';
+		if (cflags !== '') e += ' ' + cflags;
+		return e;
+	}
+
 }
