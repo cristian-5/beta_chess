@@ -351,6 +351,28 @@ class Chess {
 		return output;
 	}
 
+	/** Convert a move from 0x88 coordinates to Old Descriptive Notation */
+	#descriptive(move, moves) {
+		let output = '';
+		if (move.flags & BITS.KSIDE_CASTLE) output = 'O-O';
+		else if (move.flags & BITS.QSIDE_CASTLE) output = 'O-O-O';
+		else {
+			const disambiguator = move.piece !== PAWN ? this.#old_disambiguator(move, moves, this.#turn) : "";
+			output += move.piece.toUpperCase() + disambiguator;
+			output += (move.flags & (BITS.CAPTURE | BITS.EP_CAPTURE)) ? 'x' : '-';
+			output += this.#house(move.to, this.#turn);
+			if (move.flags & BITS.PROMOTION)
+				output += '=' + move.promotion.toUpperCase();
+		}
+		this.#move(move);
+		if (this.check()) {
+			if (this.checkmate()) output += '#';
+			else output += '+';
+		}
+		this.#takeback();
+		return output;
+	}
+
 	/** convert a move from Standard Algebraic Notation (SAN) to 0x88 coordinates */
 	#x88(move, sloppy) {
 		let piece, from, to, promotion, overly_disambiguated, matches;
@@ -652,6 +674,43 @@ class Chess {
 		return '';
 	}
 
+	/** uniquely identify ambiguous moves (descriptive notation) */
+	#old_disambiguator(move, moves, turn) {
+		const from = move.from;
+		const to = move.to;
+		const piece = move.piece;
+		let ambiguities = 0;
+		let same_rank = 0;
+		let same_file = 0;
+		for (let i = 0, len = moves.length; i < len; i++) {
+			const ambig_from = moves[i].from;
+			const ambig_to = moves[i].to;
+			const ambig_piece = moves[i].piece;
+			// if a move of the same piece type ends on the same to square,
+			// we'll need to add a disambiguator to the algebraic notation:
+			if (piece === ambig_piece && from !== ambig_from && to === ambig_to) {
+				ambiguities++;
+				if (this.#rank(from) === this.#rank(ambig_from)) same_rank++;
+				if (this.#file(from) === this.#file(ambig_from)) same_file++;
+			}
+		}
+		if (ambiguities > 0) {
+			// if there exists a similar moving piece on the same rank and file
+			// as the move in question, use the square as the disambiguator:
+			const house = this.#house(from, turn);
+			if (same_rank > 0 && same_file > 0) return house;
+			else if (same_file > 0) {
+				// if the moving piece rests on the same file,
+				// use the rank number as the disambiguator:
+				return house[house.length - 1];
+			} else {
+				// else use the file name:
+				return house.substring(0, house.length - 1);
+			}
+		}
+		return "";
+	}
+
 	/** infer piece type from a san move */
 	#infer(san) {
 		let piece_type = san.charAt(0);
@@ -925,11 +984,18 @@ class Chess {
 		return 'abcdefgh'.substring(f, f + 1) + '87654321'.substring(r, r + 1);
 	}
 
+	#house(i, turn) {
+		const f = this.#file(i), r = this.#rank(i);
+		const house = [ "QR", "QN", "QB", "Q", "K", "KB", "KN", "KR" ][f];
+		return house + (turn === WHITE ? 8 - r : r + 1);
+	}
+
 	#invert(c) { return c === WHITE ? BLACK : WHITE; }
 
-	#prettify(ugly_move) {
-		const move = this.#clone(ugly_move);
-		move.san = this.#san(move, this.#moves({ legal: true }));
+	#prettify(ugly_move, desc = false) {
+		const move = this.#clone(ugly_move), moves = this.#moves({ legal: true });
+		move.san = this.#san(move, moves);
+		if (desc) move.descriptive = this.#descriptive(move, moves);
 		move.to = this.#algebraic(move.to);
 		move.from = this.#algebraic(move.from);
 		let flags = '';
@@ -1186,7 +1252,9 @@ class Chess {
 	/**
 	 * _Makes_ a move on the board.
 	 * @param {object | string} move - the move to make
-	 * @param {{ sloppy: boolean }} options - sloppy move mode
+	 * @param {{ sloppy: boolean, descriptive: boolean }}
+	 *     options - sloppy move mode
+	 *     descriptive - old descriptive notation
 	 * @returns {object?} the move object or `null` if the move was invalid
 	 */
 	move(move, options) {
@@ -1235,7 +1303,7 @@ class Chess {
 		}
 		// we need to make a copy of move because we
 		// can't generate SAN after the move is made.
-		const pretty_move = this.#prettify(move_obj);
+		const pretty_move = this.#prettify(move_obj, options.descriptive);
 		this.#move(move_obj);
 		return pretty_move;
 	}
