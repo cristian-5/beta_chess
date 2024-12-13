@@ -29,10 +29,10 @@
 
 const EMPTY = - 1;
 
-export const SLOPPY = true, STRICT = false;
-export const BLACK = 'b', WHITE = 'w', LIGHT = 'light', DARK = 'dark';
-export const PAWN = 'p', KNIGHT = 'n', BISHOP = 'b', ROOK = 'r', QUEEN = 'q', KING = 'k';
-export const DEFAULT_POSITION = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1';
+const SLOPPY = true, STRICT = false;
+const BLACK = 'b', WHITE = 'w', LIGHT = 'light', DARK = 'dark';
+const PAWN = 'p', KNIGHT = 'n', BISHOP = 'b', ROOK = 'r', QUEEN = 'q', KING = 'k';
+const DEFAULT_POSITION = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1';
 
 const LETTERS = 'pnbrqkPNBRQK', SYMBOLS = '♟♞♝♜♛♚♙♘♗♖♕♔';
 const TERMINATION_MARKERS = [ '1-0', '0-1', '1/2-1/2', '*' ];
@@ -99,7 +99,7 @@ const BITS = {
 const RANK_1 = 7, RANK_2 = 6, RANK_3 = 5, RANK_4 = 4,
 	  RANK_5 = 3, RANK_6 = 2, RANK_7 = 1, RANK_8 = 0;
 
-export const SQUARES = {
+const SQUARES = {
 	a8: 0x00, b8: 0x01, c8: 0x02, d8: 0x03, e8: 0x04, f8: 0x05, g8: 0x06, h8: 0x07,
 	a7: 0x10, b7: 0x11, c7: 0x12, d7: 0x13, e7: 0x14, f7: 0x15, g7: 0x16, h7: 0x17,
 	a6: 0x20, b6: 0x21, c6: 0x22, d6: 0x23, e6: 0x24, f6: 0x25, g6: 0x26, h6: 0x27,
@@ -112,7 +112,7 @@ export const SQUARES = {
 
 const PARSER_STRICT = 0, PARSER_SLOPPY = 1;
 
-export class Chess {
+class Chess {
 
 	#ROOKS = {
 		w: [
